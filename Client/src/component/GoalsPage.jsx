@@ -34,7 +34,7 @@ function GoalsSection() {
     if (token) {
       try {
         const { id } = jwtDecode(token);
-        const res = await axios.get(`http://localhost:8000/userinfo/${id}`, {
+        const res = await axios.get(`${process.env.BACKEND_URL}/userinfo/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -58,7 +58,7 @@ function GoalsSection() {
       if (goal.completed) {
         // If the goal is completed, delete it
         console.log(`Deleting goal with ID: ${goal._id}`);
-        await axios.delete(`http://localhost:8000/user/user/${id}/goals/${goal._id}`, {
+        await axios.delete(`${process.env.BACKEND_URL}/user/user/${id}/goals/${goal._id}`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -79,8 +79,8 @@ function GoalsSection() {
           }
         );
         await axios.patch(
-          `http://localhost:8000/api/user/${id}/add-aurapoints`, 
-          { points: 10 }, 
+          `http://localhost:8000/api/user/${id}/add-aurapoints`,
+          { points: 10 },
           { headers: { Authorization: `Bearer ${token}` } }
         );
 

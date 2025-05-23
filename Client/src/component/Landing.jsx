@@ -8,14 +8,14 @@ export default function Landing() {
       <div className="header">
         <h2>MangoDB</h2>
         <div
-          class="mid-spot"
-          onclick="document.body.classList.toggle('gold');"
+          className="mid-spot"
+          onClick={() => document.body.classList.toggle('gold')}
         ></div>
         <NavLink to="/register" className="contact-btn aadi">
           <span className="glow"></span>
           <span className="contact-btn-content">SignUp / Login</span>
         </NavLink>
-        <div class="spotlight">
+        <div className="spotlight">
           <div></div>
           <div></div>
           <div></div>
@@ -24,7 +24,7 @@ export default function Landing() {
 
       <canvas id="particleCanvas"></canvas>
 
-      <div class="accent-lines">
+      <div className="accent-lines">
         <div>
           <div></div>
           <div></div>
@@ -39,25 +39,25 @@ export default function Landing() {
           <div></div>
         </div>
       </div>
-      <div class="heroSubP">
+      <div className="heroSubP">
         <p>Introducing</p>
       </div>
-      <div class="hero">
-        <div class="heroT">
+      <div className="hero">
+        <div className="heroT">
           <h2>AuraSphere</h2>
           <h2>AuraSphere</h2>
         </div>
       </div>
-      <p class="heroP">
+      <p className="heroP">
         The world's best platform, <br />
         to gamify your daily life.
       </p>
-      <div class="mountains">
+      <div className="mountains">
         <div></div>
         <div></div>
         <div></div>
       </div>
-      <div class="hero-spacer"></div>
+      <div className="hero-spacer"></div>
     </div>
   );
 }
