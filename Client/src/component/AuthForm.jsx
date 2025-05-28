@@ -24,8 +24,8 @@ export default function AuthForm() {
     try {
       const endpoint =
         mode === "login"
-          ? `http://localhost:8000/auth/login`
-          : `http://localhost:8000/auth/register`;
+          ? `https://aura-sphere.vercel.app//auth/login`
+          : `https://aura-sphere.vercel.app//auth/register`;
       const formData = mode === "signup" ? new FormData() : null;
 
       if (formData) {
@@ -76,8 +76,8 @@ export default function AuthForm() {
   const handleSocialAuth = (provider) => {
     const url =
       provider === "google"
-        ? `http://localhost:8000/auth/google`
-        : `http://localhost:8000/auth/github`;
+        ? `https://aura-sphere.vercel.app//auth/google`
+        : `https://aura-sphere.vercel.app//auth/github`;
     window.location.href = url;
   };
 
