@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { CheckCircle } from 'lucide-react';
-import axios from 'axios';
-import { jwtDecode } from 'jwt-decode';
-import Navbar from './Navbar.jsx';
+import React, { useState, useEffect } from "react";
+import { CheckCircle } from "lucide-react";
+import axios from "axios";
+import { jwtDecode } from "jwt-decode";
+import Navbar from "./Navbar.jsx";
 
 function Goal({ goal, onToggleComplete }) {
   return (
@@ -18,9 +18,12 @@ function Goal({ goal, onToggleComplete }) {
         <p className="text-sm text-gray-400">Target Date: {goal.targetDate}</p>
       </div>
       <CheckCircle
-  className={`w-6 h-6 ${goal.completed ? 'text-green-400' : 'text-gray-500 hover:text-green-400'}`}
-/>
-
+        className={`w-6 h-6 ${
+          goal.completed
+            ? "text-green-400"
+            : "text-gray-500 hover:text-green-400"
+        }`}
+      />
     </div>
   );
 }
@@ -34,11 +37,14 @@ function GoalsSection() {
     if (token) {
       try {
         const { id } = jwtDecode(token);
-        const res = await axios.get(`${process.env.BACKEND_URL}/userinfo/${id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`
+        const res = await axios.get(
+          `${process.env.BACKEND_URL}/userinfo/${id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
           }
-        });
+        );
         setGoals(res.data.academicGoals || []);
       } catch (error) {
         console.error("Error fetching goals:", error);
@@ -58,12 +64,15 @@ function GoalsSection() {
       if (goal.completed) {
         // If the goal is completed, delete it
         console.log(`Deleting goal with ID: ${goal._id}`);
-        await axios.delete(`${process.env.BACKEND_URL}/user/user/${id}/goals/${goal._id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`
+        await axios.delete(
+          `https://aura-sphere.vercel.app/user/user/${id}/goals/${goal._id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
           }
-        });
-        
+        );
+
         // Refresh goals after deletion
         await fetchGoals();
       } else {
@@ -75,8 +84,8 @@ function GoalsSection() {
           { completed: true },
           {
             headers: {
-              Authorization: `Bearer ${token}`
-            }
+              Authorization: `Bearer ${token}`,
+            },
           }
         );
         await axios.patch(
@@ -90,12 +99,14 @@ function GoalsSection() {
         setPopupVisible(true);
         setTimeout(() => setPopupVisible(false), 3000);
         await fetchGoals();
-        
+
         // Refresh goals after updating
-        
       }
     } catch (error) {
-      console.error("Error updating/deleting goal:", error.response ? error.response.data : error.message);
+      console.error(
+        "Error updating/deleting goal:",
+        error.response ? error.response.data : error.message
+      );
     }
   };
 
@@ -103,8 +114,12 @@ function GoalsSection() {
     <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
       <h2 className="text-xl font-bold mb-4">Your Goals</h2>
       <div className="space-y-4">
-        {goals.map(goal => (
-          <Goal key={goal._id} goal={goal} onToggleComplete={toggleGoalComplete} />
+        {goals.map((goal) => (
+          <Goal
+            key={goal._id}
+            goal={goal}
+            onToggleComplete={toggleGoalComplete}
+          />
         ))}
       </div>
       {popupVisible && (

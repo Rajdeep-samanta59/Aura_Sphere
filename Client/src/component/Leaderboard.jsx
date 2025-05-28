@@ -22,7 +22,7 @@ function App() {
         };
     
         // Make the request with the headers
-        const response = await axios.get('http://localhost:8000/userr/leaderboard', config);
+        const response = await axios.get('https://aura-sphere.vercel.app/user/leaderboard', config);
         setLeaderboardData(response.data);
       } catch (error) {
         console.error('Error fetching leaderboard data:', error);

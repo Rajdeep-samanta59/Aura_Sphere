@@ -15,7 +15,7 @@ const Navbar = () => {
         if (!token) throw new Error("No token found");
 
         const { id } = jwtDecode(token);
-        const res = await axios.get(`http://localhost:8000/userinfo/${id}`, {
+        const res = await axios.get(`https://aura-sphere.vercel.app/userinfo/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`
           }

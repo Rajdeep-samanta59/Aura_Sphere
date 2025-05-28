@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
 // console.log("Backend URL:", "http://localhost:8000");
-console.log("Backend URL:", "https://aura-sphere.vercel.app");
+// console.log("Backend URL:", "https://aura-sphere.vercel.app");
 
 export default function AuthForm() {
   const [mode, setMode] = useState("login");
@@ -24,8 +24,9 @@ export default function AuthForm() {
     try {
       const endpoint =
         mode === "login"
-          ? `https://aura-sphere.vercel.app//auth/login`
-          : `https://aura-sphere.vercel.app//auth/register`;
+          ? `https://aura-sphere.vercel.app/auth/login`
+          : `https://aura-sphere.vercel.app/auth/register`;
+
       const formData = mode === "signup" ? new FormData() : null;
 
       if (formData) {
@@ -76,8 +77,8 @@ export default function AuthForm() {
   const handleSocialAuth = (provider) => {
     const url =
       provider === "google"
-        ? `https://aura-sphere.vercel.app//auth/google`
-        : `https://aura-sphere.vercel.app//auth/github`;
+        ? `https://aura-sphere.vercel.app/auth/google`
+        : `https://aura-sphere.vercel.app/auth/github`;
     window.location.href = url;
   };
 
