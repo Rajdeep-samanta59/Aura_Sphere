@@ -70,7 +70,8 @@ function GoalsSection() {
         // If the goal is not completed, mark it as completed
         console.log(`Marking goal as completed with ID: ${goal._id}`);
         await axios.delete(
-          `http://localhost:8000/user/user/${id}/goals/${goal._id}`,
+          // `http://localhost:8000/user/user/${id}/goals/${goal._id}`,
+          `https://aura-sphere.vercel.app/user/user/${id}/goals/${goal._id}`,
           { completed: true },
           {
             headers: {
@@ -79,7 +80,8 @@ function GoalsSection() {
           }
         );
         await axios.patch(
-          `http://localhost:8000/api/user/${id}/add-aurapoints`,
+          // `http://localhost:8000/api/user/${id}/add-aurapoints`,
+          `https://aura-sphere.vercel.app/api/user/${id}/add-aurapoints`,
           { points: 10 },
           { headers: { Authorization: `Bearer ${token}` } }
         );

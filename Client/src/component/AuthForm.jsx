@@ -5,7 +5,8 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
-console.log("Backend URL:", "http://localhost:8000");
+// console.log("Backend URL:", "http://localhost:8000");
+console.log("Backend URL:", "https://aura-sphere.vercel.app");
 
 export default function AuthForm() {
   const [mode, setMode] = useState("login");
