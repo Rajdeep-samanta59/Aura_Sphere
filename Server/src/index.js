@@ -64,19 +64,9 @@ app.use(
     },
   })
 );
-// delete down 
-app.get("/api/health", async (req, res) => {
-  try {
-    // If you have a mongoose connection object, you can check readyState:
-    const state = mongoose.connection.readyState; 
-    // 1 = connected
-    res.json({ dbConnectionState: state });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
 
-// delete up
+
+
 
 app.use(passport.initialize());
 app.use(passport.session());
@@ -88,7 +78,17 @@ app.get("/", (req, res) => {
   res.status(200).json({ message: "AuraSphere Backend API is running ✅" });
 });
 
-// 4. API Routes
+// 4. API Routes delete immidiately 
+app.get("/api/health", async (req, res) => {
+  try {
+    // If you have a mongoose connection object, you can check readyState:
+    const state = mongoose.connection.readyState; 
+    // 1 = connected
+    res.json({ dbConnectionState: state });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}); 
 app.use("/auth", auth);
 app.use("/userinfo", userRouter);
 app.use("/api/user", addPt);
