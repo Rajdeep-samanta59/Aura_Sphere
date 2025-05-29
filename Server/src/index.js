@@ -20,7 +20,7 @@ import { errorHandler } from "./middleware/errorHandler.js";
 
 // delete down 
 
-import connectDB from "./db/connect.js";
+// import connectDB from "./db/connect.js";
 // Kick off the initial connection and capture the promise
 const dbPromise = connectDB()
   .then(() => console.log("MongoDB initial connection OK"))
