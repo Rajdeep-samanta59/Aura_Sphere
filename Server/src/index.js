@@ -18,6 +18,16 @@ import "./passport.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
 
+// delete down 
+
+import connectDB from "./db/connect.js";
+// Kick off the initial connection and capture the promise
+const dbPromise = connectDB()
+  .then(() => console.log("MongoDB initial connection OK"))
+  .catch(err => console.error("MongoDB initial connection ERROR:", err));
+
+
+
 // Routes
 import auth from "./routes/auth.js";
 import userRouter from "./routes/userroute.js";
@@ -35,15 +45,17 @@ dotenv.config({ path: "./.env" });
 const app = express();
 
 // 1. Connect to DB at cold start (no process.exit or app.listen needed)
-(async () => {
-  try {
-    await connectDB();
-    console.log("MongoDB connected");
-  } catch (err) {
-    console.error("DB connection error:", err);
-    // Do not exit; function will handle errors per request
-  }
-})();
+
+
+// (async () => {
+//   try {
+//     await connectDB();
+//     console.log("MongoDB connected");
+//   } catch (err) {
+//     console.error("DB connection error:", err);
+//     // Do not exit; function will handle errors per request
+//   }
+// })();
 
 // 2. Middleware
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
@@ -58,19 +70,19 @@ app.use(
 // delete this 
 
 // src/index.js (just after app.use(session(...)) and before app.use(passport.initialize()))
-app.use(async (req, res, next) => {
-  // If not yet connected (1 = connected)
-  if (mongoose.connection.readyState !== 1) {
-    try {
-      await connectDB();     // wait for DB to connect
-      console.log("MongoDB connected (middleware)");
-    } catch (err) {
-      console.error("DB connection error (middleware):", err);
-      return res.status(500).json({ message: "Database connection failed" });
-    }
-  }
-  next();
-});
+// app.use(async (req, res, next) => {
+//   // If not yet connected (1 = connected)
+//   if (mongoose.connection.readyState !== 1) {
+//     try {
+//       await connectDB();     // wait for DB to connect
+//       console.log("MongoDB connected (middleware)");
+//     } catch (err) {
+//       console.error("DB connection error (middleware):", err);
+//       return res.status(500).json({ message: "Database connection failed" });
+//     }
+//   }
+//   next();
+// });
 
 app.use(
   session({
@@ -103,14 +115,17 @@ app.get("/", (req, res) => {
 
 app.get("/api/health", async (req, res) => {
   try {
-    // If you have a mongoose connection object, you can check readyState:
+    // Wait here until the initial DB connection promise settles
+    await dbPromise;
     const state = mongoose.connection.readyState; 
-    // 1 = connected
-    res.json({ dbConnectionState: state });
+    return res.json({ dbConnectionState: state });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Health-check DB error:", err);
+    return res.status(500).json({ error: err.message });
   }
-}); 
+});
+
+
 app.use("/api/auth", auth);   //addded now /api 
 app.use("/api/userinfo", userRouter);
 app.use("/api/leaderboard", lead);
