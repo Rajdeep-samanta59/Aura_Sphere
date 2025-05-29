@@ -111,8 +111,8 @@ function Dashboard() {
           }
         });
 
-        console.log("User Data Response:", res.data); // Log user data for confirmation
-        setUser(res.data); // Set user data to state
+        console.log("User Data Response:", res.data);
+        setUser(res.data); 
       } catch (error) {
         console.error("Error fetching user data:", error);
         setError(error.message);

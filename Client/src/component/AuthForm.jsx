@@ -15,6 +15,7 @@ export default function AuthForm() {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
+  
   const [avatar, setAvatar] = useState(null);
 
   const handleSubmit = async (e) => {
