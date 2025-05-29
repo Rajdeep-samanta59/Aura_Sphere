@@ -65,7 +65,7 @@ function GoalsSection() {
         // If the goal is completed, delete it
         console.log(`Deleting goal with ID: ${goal._id}`);
         await axios.delete(
-          `https://aura-sphere.vercel.app/user/user/${id}/goals/${goal._id}`,
+          `https://aura-sphere.vercel.app/api/user/${id}/goals/${goal._id}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
