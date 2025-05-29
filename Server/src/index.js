@@ -79,6 +79,8 @@ app.get("/", (req, res) => {
 });
 
 // 4. API Routes delete immidiately 
+import mongoose from "mongoose";
+
 app.get("/api/health", async (req, res) => {
   try {
     // If you have a mongoose connection object, you can check readyState:
@@ -89,7 +91,7 @@ app.get("/api/health", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 }); 
-app.use("/auth", auth);
+app.use("/api/auth", auth);   //addded now /api 
 app.use("/userinfo", userRouter);
 app.use("/api/user", addPt);
 app.use("/userr", lead);
