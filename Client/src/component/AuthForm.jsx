@@ -91,8 +91,8 @@ export default function AuthForm() {
           </h2>
           <p className="mt-2 text-sm text-gray-400">
             {mode === "login"
-              ? "Don't have an account? "
-              : "Already have an account? "}
+              ? "Don't have an Account? "
+              : "Already have an Account? "}
             <button
               onClick={() => setMode(mode === "login" ? "signup" : "login")}
               className="font-medium text-indigo-400 hover:text-indigo-300 transition-colors"
