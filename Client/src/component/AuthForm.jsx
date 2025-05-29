@@ -37,12 +37,13 @@ export default function AuthForm() {
           formData.append("avatar", avatar);
         }
       }
-
+      
       const requestBody = mode === "login" ? { email, password } : formData;
 
       const response = await axios.post(endpoint, requestBody, {
         headers:
           mode === "signup" ? { "Content-Type": "multipart/form-data" } : {},
+        withCredentials: true, // ← Add this line
       });
 
       if (mode === "login") {

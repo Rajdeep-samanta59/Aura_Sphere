@@ -38,7 +38,7 @@ function GoalsSection() {
       try {
         const { id } = jwtDecode(token);
         const res = await axios.get(
-          `${process.env.BACKEND_URL}/userinfo/${id}`,
+          `https://aura-sphere.vercel.app/userinfo/${id}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

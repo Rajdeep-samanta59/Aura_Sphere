@@ -41,7 +41,7 @@ const GoalForm = ({ onSubmit }) => {
     const data = jwtDecode(token);
     console.log("DATA: ", data);
     const id = data.id;
-    const res = await axios.post(`${process.env.BACKEND_URL}/user/user/${id}/goals`, goalData);
+    const res = await axios.post(`https://aura-sphere.vercel.app/api/user/${id}/goals`, goalData);
     console.log(res, " Response");
     console.log("OHDGIDSUG:", goalData);
     
