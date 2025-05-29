@@ -14,6 +14,7 @@ import session from "express-session";
 import passport from "passport";
 import cors from "cors";
 import mongoose from "mongoose";
+import auth from "./routes/auth.js";
 import "./passport.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
@@ -29,7 +30,7 @@ const dbPromise = connectDB()
 
 
 // Routes
-import auth from "./routes/auth.js";
+
 import userRouter from "./routes/userroute.js";
 import goalRouter from "./routes/goals.js";
 import addPt from "./routes/addpt.js";

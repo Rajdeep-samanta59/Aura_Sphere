@@ -13,6 +13,10 @@ dotenv.config({ path: './.env' });
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 const router = Router();
 
+router.get("/test", (req, res) => {
+  res.send("Auth route is working ✅");
+});
+
 router.route("/register").post(upload.fields([
     { name: "avatar", maxCount: 1 }
 ]), async (req, res) => {
@@ -113,6 +117,8 @@ router.get('/github/callback', passport.authenticate('github', { failureRedirect
         res.redirect(`${FRONTEND_URL}/home`);
     }
 );
-
+router.post("/signup", (req, res) => {
+  res.json({ message: "Signup works ✅" });
+});
 
 export default router;
