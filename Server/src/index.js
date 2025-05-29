@@ -13,7 +13,7 @@ import connectDB from "./db/connect.js";
 import session from "express-session";
 import passport from "passport";
 import cors from "cors";
-
+import mongoose from "mongoose";
 import "./passport.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
@@ -24,7 +24,9 @@ import goalRouter from "./routes/goals.js";
 import addPt from "./routes/addpt.js";
 import lead from "./routes/leaderboardroute.js";
 import courseRouter from "./routes/courserouter.js";
-import gamificationRouter from "./routes/gamificiation.js";
+// import gamificationRouter from "./routes/gamification.js";
+   import gamificationRouter from "./routes/gamification.js";
+
 import challengeRoutes from "./routes/challengeRoutes.js";
 
 dotenv.config({ path: "./.env" });
@@ -79,7 +81,7 @@ app.get("/", (req, res) => {
 });
 
 // 4. API Routes delete immidiately 
-import mongoose from "mongoose";
+
 
 app.get("/api/health", async (req, res) => {
   try {
@@ -92,13 +94,16 @@ app.get("/api/health", async (req, res) => {
   }
 }); 
 app.use("/api/auth", auth);   //addded now /api 
-app.use("/userinfo", userRouter);
-app.use("/api/user", addPt);
-app.use("/userr", lead);
-app.use("/user", goalRouter);
-app.use("/courses", courseRouter);
+app.use("/api/userinfo", userRouter);
+app.use("/api/leaderboard", lead);
+app.use("/api/user/points", addPt);
+// app.use("/userr", lead);
+// app.use("/user", goalRouter);
+app.use("/api/goals", goalRouter);
+app.use("/api/courses", courseRouter);
 app.use("/api/gamification", challengeRoutes);
-app.use("/gamification", gamificationRouter);
+// app.use("/gamification", gamificationRouter);
+
 
 // 5. Error handler (moved after routes)
 app.use(errorHandler);
