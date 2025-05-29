@@ -17,6 +17,7 @@ import mongoose from "mongoose";
 import "./passport.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
+
 // Routes
 import auth from "./routes/auth.js";
 import userRouter from "./routes/userroute.js";
@@ -53,6 +54,23 @@ app.use(
     methods: ["GET", "POST", "PUT", "DELETE"],
   })
 );
+
+// delete this 
+
+// src/index.js (just after app.use(session(...)) and before app.use(passport.initialize()))
+app.use(async (req, res, next) => {
+  // If not yet connected (1 = connected)
+  if (mongoose.connection.readyState !== 1) {
+    try {
+      await connectDB();     // wait for DB to connect
+      console.log("MongoDB connected (middleware)");
+    } catch (err) {
+      console.error("DB connection error (middleware):", err);
+      return res.status(500).json({ message: "Database connection failed" });
+    }
+  }
+  next();
+});
 
 app.use(
   session({
