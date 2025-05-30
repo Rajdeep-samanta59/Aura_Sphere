@@ -1,151 +1,71 @@
-/*
-  Updated index.js for Vercel serverless deployment:
-  - Removed app.listen() and process.exit calls
-  - Top-level async IIFE to connect to DB without exit
-  - Exported Express app instead of listening
-  - Moved errorHandler after all routes
-  - Removed duplicate /api/gamification mount
-*/
-
 import express from "express";
 import dotenv from "dotenv";
-import connectDB from "./db/connect.js";
+import mongoose from "mongoose";
 import session from "express-session";
 import passport from "passport";
 import cors from "cors";
-import mongoose from "mongoose";
-import auth from "./routes/auth.js";
-import "./passport.js";
-import { errorHandler } from "./middleware/errorHandler.js";
 
-
-// delete down 
-
-// import connectDB from "./db/connect.js";
-// Kick off the initial connection and capture the promise
-const dbPromise = connectDB()
-  .then(() => console.log("MongoDB initial connection OK"))
-  .catch(err => console.error("MongoDB initial connection ERROR:", err));
-
-
-
-// Routes
-
+import connectDB from "./db/connect.js";
+import authRoutes from "./routes/auth.js";
 import userRouter from "./routes/userroute.js";
 import goalRouter from "./routes/goals.js";
 import addPt from "./routes/addpt.js";
-import lead from "./routes/leaderboardroute.js";
+import leaderboardRouter from "./routes/leaderboardroute.js";
 import courseRouter from "./routes/courserouter.js";
-// import gamificationRouter from "./routes/gamification.js";
-   import gamificationRouter from "./routes/gamification.js";
-
 import challengeRoutes from "./routes/challengeRoutes.js";
+import gamificationRouter from "./routes/gamification.js";
+import { errorHandler } from "./middleware/errorHandler.js";
 
-dotenv.config({ path: "./.env" });
+// Load environment variables
+dotenv.config();
 
+// Initialize Express
 const app = express();
 
-// 1. Connect to DB at cold start (no process.exit or app.listen needed)
+// Connect to MongoDB
+const dbPromise = connectDB()
+  .then(() => console.log("MongoDB connected"))
+  .catch(err => console.error("MongoDB connection error:", err));
 
-
-// (async () => {
-//   try {
-//     await connectDB();
-//     console.log("MongoDB connected");
-//   } catch (err) {
-//     console.error("DB connection error:", err);
-//     // Do not exit; function will handle errors per request
-//   }
-// })();
-
-// 2. Middleware
-const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
-app.use(
-  cors({
-    origin: "https://aura-sphere.vercel.app", // ✅ Frontend domain
-    credentials: true, // ✅ Allow cookies across domains
-    methods: ["GET", "POST", "PUT", "DELETE"],
-  })
-);
-
-// delete this 
-
-// src/index.js (just after app.use(session(...)) and before app.use(passport.initialize()))
-// app.use(async (req, res, next) => {
-//   // If not yet connected (1 = connected)
-//   if (mongoose.connection.readyState !== 1) {
-//     try {
-//       await connectDB();     // wait for DB to connect
-//       console.log("MongoDB connected (middleware)");
-//     } catch (err) {
-//       console.error("DB connection error (middleware):", err);
-//       return res.status(500).json({ message: "Database connection failed" });
-//     }
-//   }
-//   next();
-// });
-
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: true,
-    cookie: {
-      secure: true, // ✅ required on HTTPS
-      sameSite: "none", // ✅ needed for cross-site cookies
-      maxAge: 24 * 60 * 60 * 1000,
-    },
-  })
-);
-
-
-
-
+// Middleware
+app.use(cors({
+  origin: process.env.FRONTEND_URL,
+  credentials: true,
+}));
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: true,
+  cookie: {
+    secure: true,
+    sameSite: 'none',
+    maxAge: 24 * 60 * 60 * 1000,
+  }
+}));
 app.use(passport.initialize());
 app.use(passport.session());
-app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// 3. Health check route to avoid 404 on root
-app.get("/", (req, res) => {
-  res.status(200).json({ message: "AuraSphere Backend API is running ✅" });
-});
-
-// 4. API Routes delete immidiately 
-
-
+// Health-check
 app.get("/api/health", async (req, res) => {
-  try {
-    // Wait here until the initial DB connection promise settles
-    await dbPromise;
-    const state = mongoose.connection.readyState; 
-    return res.json({ dbConnectionState: state });
-  } catch (err) {
-    console.error("Health-check DB error:", err);
-    return res.status(500).json({ error: err.message });
-  }
+  await dbPromise;
+  return res.json({ dbConnectionState: mongoose.connection.readyState });
 });
 
-
-app.use("/api/auth", auth);   //addded now /api 
+// Routes
+app.use("/api/auth", authRoutes);
 app.use("/api/userinfo", userRouter);
-app.use("/api/leaderboard", lead);
 app.use("/api/user/points", addPt);
-// app.use("/userr", lead);
-// app.use("/user", goalRouter);
+app.use("/api/leaderboard", leaderboardRouter);
 app.use("/api/goals", goalRouter);
 app.use("/api/courses", courseRouter);
 app.use("/api/gamification", challengeRoutes);
-// app.use("/gamification", gamificationRouter);
+app.use("/api/gamification-full", gamificationRouter);
 
-
-// 5. Error handler (moved after routes)
+// Error handling & 404
 app.use(errorHandler);
+app.use((req, res) => res.status(404).json({ message: "Route not found" }));
 
-// 6. 404 fallback
-app.use((req, res) => {
-  res.status(404).json({ message: "Route not found" });
-});
-
-// 7. Export the app (no app.listen)
+// Export for serverless
 export default app;
