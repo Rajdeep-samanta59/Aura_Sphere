@@ -4,121 +4,113 @@ import { User } from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 import protect from "../middleware/auth.js";
 import bcrypt from "bcryptjs";
-import {upload} from "../middleware/multer.js";
-import {ApiError} from "../utils/ApiError.js";
+import { upload } from "../middleware/multer.js";
+import { ApiError } from "../utils/ApiError.js";
 import { uploadToCloudinary } from "../utils/uploadcloud.js";
+import passport from "passport";
+import dotenv from "dotenv";
 
-import dotenv from 'dotenv';
-dotenv.config({ path: './.env' });
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+dotenv.config({ path: "./.env" });
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 const router = Router();
 
+// Test route
 router.get("/test", (req, res) => {
   res.send("Auth route is working ✅");
 });
 
-router.route("/register").post(upload.fields([
-    { name: "avatar", maxCount: 1 }
-]), async (req, res) => {
+// Register route
+router.route("/register").post(
+  upload.fields([{ name: "avatar", maxCount: 1 }]),
+  async (req, res) => {
     const { email, password, username } = req.body;
 
     try {
-        const avatarlocalpath = req.files?.avatar[0]?.path;
-        console.log("avatarlocalpath:", avatarlocalpath);
-        
-        if (!avatarlocalpath) {
-            return res.status(400).json({ message: "Avatar is required" });
-        }
-        
+      const avatarlocalpath = req.files?.avatar?.[0]?.path;
+      let avatarUrl = "https://plus.unsplash.com/premium_photo-1739786996022-5ed5b56834e2?q=80&w=2080&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"; // Default avatar
+
+      if (avatarlocalpath) {
         const avatar = await uploadToCloudinary(avatarlocalpath);
         if (!avatar) {
-            return res.status(500).json({ message: "Image upload failed" });
+          return res.status(500).json({ message: "Image upload failed" });
         }
+        avatarUrl = avatar.url;
+      }
 
-        const userExists = await User.findOne({ email });
-        if (userExists) {
-            return res.status(400).json({ message: 'User already exists' });
-        }
+      const userExists = await User.findOne({ email });
+      if (userExists) {
+        return res.status(400).json({ message: "User already exists" });
+      }
 
-        const user = await User.create({ username, email, avatar: avatar.url, password });
-        const createduser = await User.findById(user._id).select("-password");
-        
-        if (!createduser) {
-            return res.status(500).json({ message: "User creation failed" });
-        }
+      // Assuming User model hashes password in a pre-save hook
+      const user = await User.create({ username, email, avatar: avatarUrl, password });
+      const userResponse = { ...user._doc };
+      delete userResponse.password; // Remove password from response
 
-        // Return a message without the token, so the user is not automatically logged in
-        res.status(201).json({ message: 'User created' });
+      res.status(201).json({ message: "User created", user: userResponse });
     } catch (err) {
-        console.error("Error with User.findOne:", err.message);
-        res.status(500).json({ message: 'Internal server error' });
+      console.error("Registration error:", err.message);
+      res.status(500).json({ message: "Failed to register user" });
     }
-});
+  }
+);
 
-
+// Login route
 router.route("/login").post(async (req, res) => {
-    const { email, password } = req.body;
-    try {
-        console.log("Login attempt with email:", email);
-        const user = await User.findOne({ email });
-        if (!user) {
-            console.log("User not found");
-            return res.status(401).json({ message: "Invalid credentials" });
-        }
-        const isMatch = await user.matchPassword(password);
-        if (!isMatch) {
-            console.log("Password mismatch");
-            return res.status(401).json({ message: "Invalid credentials" });
-        }
-        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-        console.log("Login successful, token generated");
-        res.json({ message: 'Login successful', token });
-    } catch (error) {
-        console.error("Error during login:", error.message);
-        res.status(500).json({ message: 'Server error' });
+  const { email, password } = req.body;
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(401).json({ message: "Invalid credentials" });
     }
-});
-router.get('/profile', protect, async (req, res) => {
-    try {
-        const user = await User.findById(req.user.id).select('-password');
-        res.json(user);
-    } catch (error) {
-        res.status(500).json({ message: 'Server error' });
+
+    const isMatch = await user.matchPassword(password);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Invalid credentials" });
     }
+
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+    res.json({ message: "Login successful", token });
+  } catch (error) {
+    console.error("Login error:", error.message);
+    res.status(500).json({ message: "Failed to login" });
+  }
 });
 
-import passport from 'passport';
-// Auth with Google
-router.get('/google', passport.authenticate('google', {
-    scope: ['profile', 'email']
-}));
-
-
-// Callback route for Google
-router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/' }),
-    (req, res) => {
-        // Successful authentication, redirect home.
-        // res.redirect(`http://localhost:5173/home`);
-        //  // Redirect to your frontend or a success page berore deploy
-        res.redirect(`${FRONTEND_URL}/home`);
+// Profile route
+router.get("/profile", protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
+    res.json(user);
+  } catch (error) {
+    console.error("Profile error:", error.message);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Google OAuth
+router.get("/google", passport.authenticate("google", { scope: ["profile", "email"] }));
+
+router.get(
+  "/google/callback",
+  passport.authenticate("google", { failureRedirect: `${FRONTEND_URL}/login` }),
+  (req, res) => {
+    res.redirect(`${FRONTEND_URL}/home`);
+  }
 );
 
-// Auth with GitHub
+// GitHub OAuth
+router.get("/github", passport.authenticate("github", { scope: ["user:email"] }));
 
-router.get('/github', passport.authenticate('github', { scope: ['user:email'] }));
-
-
-// GitHub callback route
-router.get('/github/callback', passport.authenticate('github', { failureRedirect: '/' }),
-    (req, res) => {
-        // res.redirect(`http://localhost:5173/home`); // Redirect to a frontend route or success page
-        
-        res.redirect(`${FRONTEND_URL}/home`);
-    }
+router.get(
+  "/github/callback",
+  passport.authenticate("github", { failureRedirect: `${FRONTEND_URL}/login` }),
+  (req, res) => {
+    res.redirect(`${FRONTEND_URL}/home`);
+  }
 );
-router.post("/signup", (req, res) => {
-  res.json({ message: "Signup works ✅" });
-});
 
 export default router;
