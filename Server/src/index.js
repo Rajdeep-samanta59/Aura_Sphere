@@ -63,7 +63,7 @@ const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 app.use(
   cors({
     origin: "https://aura-sphere.vercel.app", // ✅ Frontend domain
-    credentials: true, // ✅ Allow cookies across domains
+    credentials: true, // ✅ Allow cookies across domainss
     methods: ["GET", "POST", "PUT", "DELETE"],
   })
 );
