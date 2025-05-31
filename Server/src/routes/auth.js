@@ -11,7 +11,7 @@ import passport from "passport";
 import dotenv from "dotenv";
 
 dotenv.config({ path: "./.env" });
-const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+const FRONTEND_URL = process.env.FRONTEND_URL || "https://aura-sphere-4n42.vercel.app"; // Updated for production
 const router = Router();
 
 // Test route
@@ -42,10 +42,9 @@ router.route("/register").post(
         return res.status(400).json({ message: "User already exists" });
       }
 
-      // Assuming User model hashes password in a pre-save hook
       const user = await User.create({ username, email, avatar: avatarUrl, password });
       const userResponse = { ...user._doc };
-      delete userResponse.password; // Remove password from response
+      delete userResponse.password;
 
       res.status(201).json({ message: "User created", user: userResponse });
     } catch (err) {
@@ -98,7 +97,8 @@ router.get(
   "/google/callback",
   passport.authenticate("google", { failureRedirect: `${FRONTEND_URL}/login` }),
   (req, res) => {
-    res.redirect(`${FRONTEND_URL}/home`);
+    const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+    res.redirect(`${FRONTEND_URL}/home?token=${token}`);
   }
 );
 
@@ -109,7 +109,8 @@ router.get(
   "/github/callback",
   passport.authenticate("github", { failureRedirect: `${FRONTEND_URL}/login` }),
   (req, res) => {
-    res.redirect(`${FRONTEND_URL}/home`);
+    const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+    res.redirect(`${FRONTEND_URL}/home?token=${token}`);
   }
 );
 
