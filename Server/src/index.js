@@ -12,6 +12,7 @@ import dotenv from "dotenv";
 import connectDB from "./db/connect.js";
 import session from "express-session";
 import passport from "passport";
+import cookieParser from 'cookie-parser';
 import cors from "cors";
 import mongoose from "mongoose";
 import auth from "./routes/auth.js";
