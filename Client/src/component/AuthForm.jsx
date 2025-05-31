@@ -25,8 +25,8 @@ export default function AuthForm() {
     try {
       const endpoint =
         mode === "login"
-          ? `https://aura-sphere.vercel.app/auth/login`
-          : `https://aura-sphere.vercel.app/auth/register`;
+          ? `https://aura-sphere.vercel.app/api/auth/login`
+          : `https://aura-sphere.vercel.app/api/auth/register`;
 
       const formData = mode === "signup" ? new FormData() : null;
 
