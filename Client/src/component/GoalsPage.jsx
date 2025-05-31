@@ -80,7 +80,7 @@ function GoalsSection() {
         console.log(`Marking goal as completed with ID: ${goal._id}`);
         await axios.delete(
           // `http://localhost:8000/user/user/${id}/goals/${goal._id}`,
-          `https://aura-sphere.vercel.app/user/user/${id}/goals/${goal._id}`,
+          `https://aura-sphere.vercel.app/api/user/${id}/goals/${goal._id}`,
           { completed: true },
           {
             headers: {

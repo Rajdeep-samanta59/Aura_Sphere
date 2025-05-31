@@ -79,8 +79,8 @@ export default function AuthForm() {
   const handleSocialAuth = (provider) => {
     const url =
       provider === "google"
-        ? `https://aura-sphere.vercel.app/auth/google`
-        : `https://aura-sphere.vercel.app/auth/github`;
+        ? `https://aura-sphere.vercel.app/api/auth/google`
+        : `https://aura-sphere.vercel.app/api/auth/github`;
     window.location.href = url;
   };
 

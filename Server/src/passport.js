@@ -26,7 +26,7 @@ passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     // callbackURL: '/auth/google/callback'  before production
-    callbackURL: `${process.env.BACKEND_URL}/auth/google/callback`
+    callbackURL: `${process.env.BACKEND_URL}/api/auth/google/callback`
 }, async (accessToken, refreshToken, profile, done) => {
     try {
         // Check if emails array is available
@@ -60,7 +60,7 @@ passport.use(new GitHubStrategy({
     clientID: process.env.GITHUB_CLIENT_ID,
     clientSecret: process.env.GITHUB_CLIENT_SECRET,
     // callbackURL: "/auth/github/callback"   befrore 
-    callbackURL: `${process.env.BACKEND_URL}/auth/github/callback`
+    callbackURL: `${process.env.BACKEND_URL}/api/auth/github/callback`
 }, async (accessToken, refreshToken, profile, done) => {
     try {
         // Check if emails array is provided and has at least one email
