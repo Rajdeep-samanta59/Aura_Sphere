@@ -87,18 +87,18 @@ app.use(
 //   next();
 // });
 
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: true,
-    cookie: {
-      secure: true, // ✅ required on HTTPS
-      sameSite: "none", // ✅ needed for cross-site cookies
-      maxAge: 24 * 60 * 60 * 1000,
-    },
-  })
-);
+// app.use(
+//   session({
+//     secret: process.env.SESSION_SECRET,
+//     resave: false,
+//     saveUninitialized: true,
+//     cookie: {
+//       secure: true, // ✅ required on HTTPS
+//       sameSite: "none", // ✅ needed for cross-site cookies
+//       maxAge: 24 * 60 * 60 * 1000,
+//     },
+//   })
+// );
 
 
 
