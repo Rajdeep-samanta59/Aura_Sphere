@@ -1,6 +1,7 @@
 import passport from "passport";
 import GitHubStrategy from 'passport-github2';
-import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
+import GoogleStrategy from "passport-google-oauth20";
+// import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { User } from './models/user.model.js';
 import dotenv from 'dotenv';
 
@@ -20,16 +21,13 @@ passport.deserializeUser(async (id, done) => {
         done(error);
     }
 });
-
-// Google OAuth strategy
+//google strag
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    // callbackURL: '/auth/google/callback'  before production
     callbackURL: `${process.env.BACKEND_URL}/api/auth/google/callback`
 }, async (accessToken, refreshToken, profile, done) => {
     try {
-        // Check if emails array is available
         const emails = profile.emails || [];
         const primaryEmail = emails.length > 0 ? emails[0].value : null;
 
@@ -46,8 +44,6 @@ passport.use(new GoogleStrategy({
         const newUser = await User.create({
             username: profile.displayName,
             email: primaryEmail,
-            // Optionally, you can skip the password for OAuth users
-            // password: 'dummyPassword' 
         });
         done(null, newUser);
     } catch (error) {
@@ -59,11 +55,9 @@ passport.use(new GoogleStrategy({
 passport.use(new GitHubStrategy({
     clientID: process.env.GITHUB_CLIENT_ID,
     clientSecret: process.env.GITHUB_CLIENT_SECRET,
-    // callbackURL: "/auth/github/callback"   befrore 
     callbackURL: `${process.env.BACKEND_URL}/api/auth/github/callback`
 }, async (accessToken, refreshToken, profile, done) => {
     try {
-        // Check if emails array is provided and has at least one email
         const emails = profile.emails || [];
         const primaryEmail = emails.length > 0 ? emails[0].value : null;
 

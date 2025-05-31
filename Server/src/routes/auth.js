@@ -95,10 +95,10 @@ router.get("/google", passport.authenticate("google", { scope: ["profile", "emai
 
 router.get(
   "/google/callback",
-  passport.authenticate("google", { failureRedirect: `${FRONTEND_URL}/login` }),
+  passport.authenticate("google", { failureRedirect: "https://aura-sphere.vercel.app/login" }),
   (req, res) => {
     const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
-    res.redirect(`${FRONTEND_URL}/home?token=${token}`);
+    res.redirect(`https://aura-sphere.vercel.app/home?token=${token}`);
   }
 );
 
@@ -107,10 +107,10 @@ router.get("/github", passport.authenticate("github", { scope: ["user:email"] })
 
 router.get(
   "/github/callback",
-  passport.authenticate("github", { failureRedirect: `${FRONTEND_URL}/login` }),
+  passport.authenticate("github", { failureRedirect: "https://aura-sphere.vercel.app/login" }),
   (req, res) => {
     const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
-    res.redirect(`${FRONTEND_URL}/home?token=${token}`);
+    res.redirect(`https://aura-sphere.vercel.app/home?token=${token}`);
   }
 );
 
