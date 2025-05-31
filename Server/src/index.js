@@ -62,9 +62,10 @@ const app = express();
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 app.use(
   cors({
-    origin: "https://aura-sphere.vercel.app", // ✅ Frontend domain
+    origin: "https://aura-sphere-4n42.vercel.app/", // ✅ Frontend domain
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
     credentials: true, // ✅ Allow cookies across domainss
-    methods: ["GET", "POST", "PUT", "DELETE"],
+      allowedHeaders: "Content-Type,Authorization"
   })
 );
 
@@ -105,6 +106,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(cookieParser());
 
 // 3. Health check route to avoid 404 on root
 app.get("/", (req, res) => {
