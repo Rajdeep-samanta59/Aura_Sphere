@@ -63,12 +63,25 @@ const app = express();
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 app.use(
   cors({
-    origin: "https://aura-sphere-4n42.vercel.app/", // ✅ Frontend domain
+    origin: (origin, callback) => {
+      const allowedOrigins = [
+        "https://aura-sphere-4n42.vercel.app",
+        "https://aura-sphere-4n42.vercel.app/",
+      ];
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-    credentials: true, // ✅ Allow cookies across domainss
-      allowedHeaders: "Content-Type,Authorization"
+    credentials: true,
+    allowedHeaders: "Content-Type,Authorization",
   })
 );
+
+// Handle preflight requests
+app.options("*", cors());
 
 // delete this 
 
@@ -103,8 +116,9 @@ app.use(
 
 
 
-app.use(passport.initialize());
-app.use(passport.session());
+// app.use(passport.initialize());
+// app.use(passport.session());
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
