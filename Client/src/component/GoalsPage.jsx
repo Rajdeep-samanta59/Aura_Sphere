@@ -4,7 +4,7 @@ import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 import Navbar from "./Navbar.jsx";
 
-function Goal({ goal, onToggleComplete }) {
+function Goal({ goal, onToggleComplete }){
   return (
     <div
       className="flex items-center justify-between p-4 bg-gray-700 rounded-lg cursor-pointer"
