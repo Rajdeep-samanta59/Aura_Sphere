@@ -71,20 +71,27 @@ app.use(
 app.options("*", cors());
 
 
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: true,
-    cookie: {
-  // Set secure only in production (requires HTTPS)
-  secure: process.env.NODE_ENV === "production",
-  // relax sameSite for development, tighten in production
-  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      maxAge: 24 * 60 * 60 * 1000,
-    },
-  })
-);
+// session middleware: enable only when explicitly requested via USE_SESSION
+if (process.env.USE_SESSION === 'true') {
+  app.use(
+    session({
+      secret: process.env.SESSION_SECRET,
+      resave: false,
+      saveUninitialized: true,
+      cookie: {
+        // Set secure only in production (requires HTTPS)
+        secure: process.env.NODE_ENV === "production",
+        // relax sameSite for development, tighten in production
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        maxAge: 24 * 60 * 60 * 1000,
+      },
+    })
+  );
+  app.use(passport.session());
+} else {
+  // If not using sessions, still initialize passport but avoid session support
+  // app.use(passport.session()) is intentionally skipped
+}
 
 
 
