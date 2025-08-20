@@ -1,5 +1,8 @@
-import { useState, useEffect } from 'react';
-import { Trophy, Book, Target, ChevronUp, ChevronDown, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { 
+  Trophy, Book, Calendar, Target, Clock, Award, 
+  ChevronUp, ChevronDown, Zap, BookOpen, CheckCircle, Users 
+} from 'lucide-react';
 
 import axios from 'axios';
 import { decodeJwt } from '../utils/decodeJwt';
@@ -13,7 +16,7 @@ const assignments = [
 
 // Leaderboard will be fetched live from the server
 
-const GoalForm = () => {
+const GoalForm = ({ onSubmit }) => {
   const [goalId, setGoalId] = useState("");
   const [goal, setGoal] = useState("");
   const [targetDate, setTargetDate] = useState("");
@@ -38,7 +41,8 @@ const GoalForm = () => {
         headers: { Authorization: `Bearer ${token}` },
         withCredentials: true,
       });
-  console.log('Goal submit response:', res.data);
+      console.log('Goal submit response:', res.data);
+      onSubmit(goalData);
     } catch (err) {
       console.error('Error submitting goal:', err?.response || err.message || err);
     }
@@ -89,27 +93,25 @@ function Dashboard() {
   const [leaderboardLive, setLeaderboardLive] = useState([]);
 
   useEffect(() => {
-  let mounted = true;
-  const loadLeaderboard = async () => {
+    const loadLeaderboard = async () => {
       try {
         const API_BASE = import.meta.env.VITE_API_URL || "";
         const res = await axios.get(`${API_BASE}/api/leaderboard`);
         const users = res.data || [];
         users.sort((a, b) => (b.aurapoints || 0) - (a.aurapoints || 0));
-    if (mounted) setLeaderboardLive(users.slice(0, 10));
+        setLeaderboardLive(users.slice(0, 10));
       } catch (err) {
         console.error('Failed to load leaderboard', err);
       }
     };
     loadLeaderboard();
-  const interval = setInterval(loadLeaderboard, 15000); // refresh every 15s
-  return () => { mounted = false; clearInterval(interval); };
   }, []);
   const handleGoalSubmit = (goalData) => {
     console.log("Goal Data Submitted:", goalData);
     // Here you would typically send the data to your API
   };
   const [user, setUser] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -130,6 +132,7 @@ function Dashboard() {
         setUser(res.data); 
       } catch (error) {
         console.error("Error fetching user data:", error);
+        setError(error.message);
       }
     };
 
