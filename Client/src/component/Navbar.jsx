@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Zap, Award, Calendar, Users, BookOpen, Target } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import {jwtDecode} from 'jwt-decode';
+import { Link, useNavigate } from 'react-router-dom';
+import { decodeJwt } from '../utils/decodeJwt';
 import axios from 'axios';
 
 const Navbar = () => {
   const [user, setUser] = useState(null);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -14,8 +15,9 @@ const Navbar = () => {
         const token = localStorage.getItem("token");
         if (!token) throw new Error("No token found");
 
-        const { id } = jwtDecode(token);
-        const res = await axios.get(`https://aura-sphere.vercel.app/userinfo/${id}`, {
+  const { id } = decodeJwt(token);
+  const API_BASE = import.meta.env.VITE_API_URL || "";
+  const res = await axios.get(`${API_BASE}/api/userinfo/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -31,6 +33,18 @@ const Navbar = () => {
 
     fetchUserData();
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      const API_BASE = import.meta.env.VITE_API_URL || "";
+      await axios.post(`${API_BASE}/api/auth/logout`, {}, { withCredentials: true });
+    } catch (err) {
+      console.warn('Logout request failed:', err?.message || err);
+    }
+    localStorage.removeItem('token');
+    setUser(null);
+    navigate('/login');
+  };
 
   return (
     <nav className="bg-gray-800 border-b border-gray-700 p-4">
@@ -63,7 +77,12 @@ const Navbar = () => {
                 className="w-8 h-8 rounded-full ring-2 ring-purple-400"
               />
               <span className="font-medium">{user.username}</span>
-
+              <button
+                onClick={handleLogout}
+                className="ml-3 px-3 py-1 bg-red-600 text-white rounded hover:bg-red-500 text-sm"
+              >
+                Logout
+              </button>
             </div>
           ) : (
             <span className="text-gray-400">Loading...</span>

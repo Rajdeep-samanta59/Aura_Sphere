@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from './Navbar';
+import axios from 'axios';
+import toast from 'react-hot-toast';
 
 const AssignmentPage = () => {
   const [assignments, setAssignments] = useState([]);
@@ -19,16 +21,32 @@ const AssignmentPage = () => {
     setError(""); // Clear error if inputs are valid
 
     const newAssignment = { title, dueDate, status };
+    const token = localStorage.getItem('token');
 
-    if (editIndex !== null) {
-      // Update existing assignment if in edit mode
-      const updatedAssignments = [...assignments];
-      updatedAssignments[editIndex] = newAssignment;
-      setAssignments(updatedAssignments);
-      setEditIndex(null); // Reset edit index
+    if (token) {
+      // authenticated: save to server
+      const API_BASE = import.meta.env.VITE_API_URL || "";
+      (async () => {
+        try {
+          const res = await axios.post(`${API_BASE}/api/assignments`, { title, dueDate }, { headers: { Authorization: `Bearer ${token}` } });
+          const created = res.data.assignment;
+          setAssignments(prev => [...prev, { ...created, status: created.status || status }]);
+        } catch (err) {
+          console.error('Failed to create assignment on server', err?.response?.data || err.message);
+          toast.error('Failed to save assignment to server; saved locally');
+          setAssignments(prev => [...prev, newAssignment]);
+        }
+      })();
     } else {
-      // Add new assignment
-      setAssignments([...assignments, newAssignment]);
+      // offline/unauthenticated: local-only
+      if (editIndex !== null) {
+        const updatedAssignments = [...assignments];
+        updatedAssignments[editIndex] = newAssignment;
+        setAssignments(updatedAssignments);
+        setEditIndex(null);
+      } else {
+        setAssignments([...assignments, newAssignment]);
+      }
     }
 
     // Reset form
@@ -37,10 +55,67 @@ const AssignmentPage = () => {
     setStatus("pending");
   };
 
+  // Persist assignments to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('assignments', JSON.stringify(assignments));
+  }, [assignments]);
+
+  // Load persisted assignments on mount
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const API_BASE = import.meta.env.VITE_API_URL || "";
+    if (token) {
+      // load from server
+      (async () => {
+        try {
+          const res = await axios.get(`${API_BASE}/api/assignments`, { headers: { Authorization: `Bearer ${token}` } });
+          setAssignments(res.data.assignments || []);
+        } catch (err) {
+          console.error('Failed to load assignments from server', err?.response?.data || err.message);
+          // fallback to localStorage
+          try {
+            const saved = localStorage.getItem('assignments');
+            if (saved) setAssignments(JSON.parse(saved));
+          } catch (e) {
+            console.warn('Failed to load saved assignments', e);
+          }
+        }
+      })();
+    } else {
+      try {
+        const saved = localStorage.getItem('assignments');
+        if (saved) setAssignments(JSON.parse(saved));
+      } catch (err) {
+        console.warn('Failed to load saved assignments', err);
+      }
+    }
+  }, []);
+
   const toggleStatus = (index) => {
-    const updatedAssignments = [...assignments];
-    updatedAssignments[index].status = updatedAssignments[index].status === "pending" ? "completed" : "pending";
-    setAssignments(updatedAssignments);
+    const token = localStorage.getItem('token');
+    const a = assignments[index];
+    if (!a) return;
+
+    if (token && a._id) {
+      const API_BASE = import.meta.env.VITE_API_URL || "";
+      (async () => {
+        try {
+          const res = await axios.put(`${API_BASE}/api/assignments/${a._id}/toggle`, {}, { headers: { Authorization: `Bearer ${token}` } });
+          const updated = res.data.assignment;
+          setAssignments(prev => prev.map(it => (it._id === updated._id ? updated : it)));
+        } catch (err) {
+          console.error('Failed toggle on server', err?.response?.data || err.message);
+          // optimistic local toggle
+          const updatedAssignments = [...assignments];
+          updatedAssignments[index].status = updatedAssignments[index].status === "pending" ? "completed" : "pending";
+          setAssignments(updatedAssignments);
+        }
+      })();
+    } else {
+      const updatedAssignments = [...assignments];
+      updatedAssignments[index].status = updatedAssignments[index].status === "pending" ? "completed" : "pending";
+      setAssignments(updatedAssignments);
+    }
   };
 
   const editAssignment = (index) => {
@@ -52,7 +127,22 @@ const AssignmentPage = () => {
   };
 
   const deleteAssignment = (index) => {
-    setAssignments(assignments.filter((_, i) => i !== index));
+    const a = assignments[index];
+    const token = localStorage.getItem('token');
+    if (token && a?._id) {
+      const API_BASE = import.meta.env.VITE_API_URL || "";
+      (async () => {
+        try {
+          await axios.delete(`${API_BASE}/api/assignments/${a._id}`, { headers: { Authorization: `Bearer ${token}` } });
+          setAssignments(prev => prev.filter((_, i) => i !== index));
+        } catch (err) {
+          console.error('Failed delete on server', err?.response?.data || err.message);
+          toast.error('Failed to delete on server');
+        }
+      })();
+    } else {
+      setAssignments(assignments.filter((_, i) => i !== index));
+    }
   };
 
   const filterAssignments = () => {

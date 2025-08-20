@@ -11,7 +11,7 @@ import passport from "passport";
 import dotenv from "dotenv";
 
 dotenv.config({ path: "./.env" });
-const FRONTEND_URL = process.env.FRONTEND_URL || "https://aura-sphere-4n42.vercel.app"; // Updated for production
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173"; // default to localhost for dev
 const router = Router();
 
 // Test route
@@ -95,23 +95,39 @@ router.get("/google", passport.authenticate("google", { scope: ["profile", "emai
 
 router.get(
   "/google/callback",
-  passport.authenticate("google", { failureRedirect: "https://aura-sphere.vercel.app/login" }),
+  passport.authenticate("google", {
+    failureRedirect: `${FRONTEND_URL}/login`,
+    session: false, // Use JWT, not sessions
+  }),
   (req, res) => {
-    const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
-    res.redirect(`https://aura-sphere.vercel.app/home?token=${token}`);
+    // On success, create a token
+    const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
+    // Redirect to the frontend with the token
+    res.redirect(`${FRONTEND_URL}/auth/callback?token=${token}`);
   }
 );
+  // end google callback
 
 // GitHub OAuth
 router.get("/github", passport.authenticate("github", { scope: ["user:email"] }));
 
 router.get(
   "/github/callback",
-  passport.authenticate("github", { failureRedirect: "https://aura-sphere.vercel.app/login" }),
+  passport.authenticate("github", { failureRedirect: `${FRONTEND_URL}/login`, session: false }),
   (req, res) => {
     const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
-    res.redirect(`https://aura-sphere.vercel.app/home?token=${token}`);
+    res.redirect(`${FRONTEND_URL}/auth/callback?token=${token}`);
   }
 );
+
+// Logout route - destroys server session and instructs client to clear token
+router.post('/logout', (req, res) => {
+  req.logout?.();
+  req.session?.destroy?.(() => {});
+  res.clearCookie('connect.sid');
+  res.json({ message: 'Logged out' });
+});
 
 export default router;

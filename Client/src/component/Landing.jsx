@@ -1,8 +1,9 @@
 import React from "react";
 import "./Landing.css";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 
 export default function Landing() {
+  const navigate = useNavigate();
   return (
     <div className="landin">
       <div className="header">
@@ -11,7 +12,7 @@ export default function Landing() {
           className="mid-spot"
           onClick={() => document.body.classList.toggle('gold')}
         ></div>
-        <NavLink to="/register" className="contact-btn aadi">
+  <NavLink to="/register" className="contact-btn aadi" onClick={() => navigate('/register')}>
           <span className="glow"></span>
           <span className="contact-btn-content">SignUp / Login</span>
         </NavLink>

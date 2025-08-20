@@ -4,5 +4,9 @@ import { Router } from 'express';
 import jwt from 'jsonwebtoken';
 import { getLeaderboard } from '../controller/userController.js';
 const router = Router();
-router.get('/leaderboard', getLeaderboard);
+
+// Serve leaderboard at the router root so mounting at /api/leaderboard
+// results in GET /api/leaderboard
+router.get('/', getLeaderboard);
+
 export default router;

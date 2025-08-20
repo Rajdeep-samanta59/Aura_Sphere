@@ -7,6 +7,11 @@ import bcrypt from "bcryptjs";
 
 
 const router = Router();
+// Debug logging for incoming requests to help diagnose 404s
+router.use((req, res, next) => {
+    console.log('[goals router] incoming', req.method, req.originalUrl);
+    next();
+});
 router.post('/user/:userId/goals', async (req, res) => {
     const { userId } = req.params;
     const { goalId, goalDetails } = req.body;
@@ -21,6 +26,13 @@ router.post('/user/:userId/goals', async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: "Error updating goal", error });
     }
+});
+
+// Alias: accept POST at '/:userId/goals' too (some clients used this path)
+router.post('/:userId/goals', async (req, res) => {
+    // delegate to the main handler
+    req.url = `/user/${req.params.userId}/goals`;
+    return router.handle(req, res);
 });
 
 router.delete('/user/:userId/goals/:goalId', async (req, res) => {
@@ -57,6 +69,12 @@ router.post('/user/:userId/schedule', async (req, res) => {
     }
 });
 
+// Alias delete
+router.delete('/:userId/goals/:goalId', async (req, res) => {
+    req.url = `/user/${req.params.userId}/goals/${req.params.goalId}`;
+    return router.handle(req, res);
+});
+
 router.delete('/user/:userId/schedule/:courseId', async (req, res) => {
     const { userId, courseId } = req.params;
 
@@ -71,11 +89,11 @@ router.delete('/user/:userId/schedule/:courseId', async (req, res) => {
     }
 });
 
-router.put('/:userId/goals/:goalId', async (req, res) => {
+router.put('/user/:userId/goals/:goalId', protect, async (req, res) => {
     const { userId, goalId } = req.params;
   
     try {
-      const user = await User.findById(userId);
+    const user = await User.findById(userId);
       if (!user) return res.status(404).json({ message: "User not found" });
   
       const goal = user.academicGoals.id(goalId);
@@ -90,6 +108,12 @@ router.put('/:userId/goals/:goalId', async (req, res) => {
       console.error(error);
       res.status(500).json({ message: "Server error" });
     }
+});
+
+// Alias put (older clients)
+router.put('/:userId/goals/:goalId', protect, async (req, res) => {
+    req.url = `/user/${req.params.userId}/goals/${req.params.goalId}`;
+    return router.handle(req, res);
 });
   
   

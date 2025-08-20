@@ -20,12 +20,14 @@ export default function AuthForm() {
     setIsLoading(true);
 
     try {
+      // Use Vite env or fallback to relative /api path (works with dev proxy)
+      const API_BASE = import.meta.env.VITE_API_URL || "";
       const endpoint =
         mode === "login"
-          ? `https://aura-sphere.vercel.app/api/auth/login`
-          : `https://aura-sphere.vercel.app/api/auth/register`;
+          ? `${API_BASE}/api/auth/login`
+          : `${API_BASE}/api/auth/register`;
 
-      const formData = mode === "signup" ? new FormData() : null;
+  const formData = mode === "signup" ? new FormData() : null;
 
       if (formData) {
         formData.append("email", email);
@@ -36,13 +38,17 @@ export default function AuthForm() {
         }
       }
 
-      const requestBody = mode === "login" ? { email, password } : formData;
+  const requestBody = mode === "login" ? { email, password } : formData;
 
-      const response = await axios.post(endpoint, requestBody, {
-        headers:
-          mode === "signup" ? { "Content-Type": "multipart/form-data" } : {},
+      const axiosConfig = {
         withCredentials: true,
-      });
+      };
+      if (mode === "signup") {
+        // Let browser set multipart boundary
+        axiosConfig.headers = { "Content-Type": "multipart/form-data" };
+      }
+
+      const response = await axios.post(endpoint, requestBody, axiosConfig);
 
       if (mode === "login") {
         const { token } = response.data;
@@ -76,10 +82,11 @@ export default function AuthForm() {
   };
 
   const handleSocialAuth = (provider) => {
+    const API_BASE = import.meta.env.VITE_API_URL || "";
     const url =
       provider === "google"
-        ? `https://aura-sphere.vercel.app/api/auth/google`
-        : `https://aura-sphere.vercel.app/api/auth/github`;
+        ? `${API_BASE}/api/auth/google`
+        : `${API_BASE}/api/auth/github`;
     window.location.href = url;
   };
 

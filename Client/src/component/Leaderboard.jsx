@@ -1,32 +1,36 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Trophy, Crown, Medal, Star } from 'lucide-react';
 import Navbar from './Navbar';
 import axios from 'axios';
+import { decodeJwt } from '../utils/decodeJwt';
 
-function App() {
+function Leaderboard() {
   const [leaderboardData, setLeaderboardData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null); // Add state for error handling
 
   useEffect(() => {
-    const fetchLeaderboardData = async () => {
+  const fetchLeaderboardData = async () => {
       try {
         // Get the token from local storage (or wherever you store it)
         const token = localStorage.getItem('token'); // Adjust this key if necessary
     
         // Set up the headers
+        const API_BASE = import.meta.env.VITE_API_URL || "";
         const config = {
           headers: {
             Authorization: `Bearer ${token}`,
           },
+          withCredentials: true,
         };
-    
-        // Make the request with the headers
-        const response = await axios.get('https://aura-sphere.vercel.app/user/leaderboard', config);
-        setLeaderboardData(response.data);
+  const response = await axios.get(`${API_BASE}/api/leaderboard`, config);
+  const users = response.data || [];
+  users.sort((a, b) => (b.aurapoints || 0) - (a.aurapoints || 0));
+  setLeaderboardData(users);
       } catch (error) {
-        console.error('Error fetching leaderboard data:', error);
-        setError('Failed to load leaderboard data.'); // Set error message
+        console.error('Error fetching leaderboard data:', error?.response || error.message || error);
+        const message = error?.response?.data?.message || 'Failed to load leaderboard data.';
+        setError(message); // Set error message
       } finally {
         setLoading(false); // Set loading to false regardless of success or failure
       }
@@ -34,6 +38,14 @@ function App() {
 
     fetchLeaderboardData(); // Call the function to fetch data
   }, []); // Empty dependency array to run once on mount
+
+  const token = localStorage.getItem('token');
+  // Robustly extract the current user id from the token and coerce to string
+  const currentUserId = (() => {
+    if (!token) return null;
+    const payload = decodeJwt(token) || {};
+    return payload.id ? String(payload.id) : null;
+  })();
 
   if (loading) {
     return <div className="text-center text-gray-400">Loading leaderboard...</div>;
@@ -71,9 +83,15 @@ function App() {
                 {index === 2 && <Trophy className="absolute -top-2 -right-2 w-8 h-8 text-amber-700" />}
               </div>
               <div className="text-center mt-4">
-                <h3 className={`text-${index === 0 ? '2xl' : 'xl'} font-bold text-gray-100`}>
-                  {user.username}
-                </h3>
+                {(() => {
+                  const userId = user._id || user.id || '';
+                  const isCurrent = currentUserId && String(userId) === String(currentUserId);
+                  return (
+                    <h3 className={`text-${index === 0 ? '2xl' : 'xl'} font-bold ${isCurrent ? 'text-indigo-300' : 'text-gray-100'}`}>
+                      {user.username}{isCurrent ? ' (You)' : ''}
+                    </h3>
+                  );
+                })()}
                 <p className="text-purple-400 font-bold text-xl">{user.aurapoints} pts</p>
               </div>
             </div>
@@ -84,28 +102,32 @@ function App() {
         <div className="bg-gray-800 rounded-xl shadow-xl max-w-4xl mx-auto overflow-hidden">
           <div className="p-6">
             <div className="space-y-4">
-              {leaderboardData.map((user, index) => (
-                <div key={user._id} className="flex items-center justify-between bg-gray-700/50 rounded-lg p-4 hover:bg-gray-700 transition-colors">
-                  <div className="flex items-center space-x-4">
-                    <span className="text-2xl font-bold text-gray-400 w-8">{index + 1}</span>
-                    <img src={user.avatar} alt={user.username} className="w-12 h-12 rounded-full" />
-                    <div>
-                      <h3 className="font-semibold text-gray-100">{user.username}</h3>
-                      <div className="flex items-center space-x-4 text-sm text-gray-400">
-                        <span className="flex items-center">
-                          <Star className="w-4 h-4 mr-1 text-purple-400" />
-                          N/A achievements
-                        </span>
-                        <span>🔥 N/A day streak</span>
+              {leaderboardData.map((user, index) => {
+                const userId = user._id || user.id || '';
+                const isCurrent = currentUserId && String(userId) === String(currentUserId);
+                return (
+                  <div key={user._id || user.id} className={`flex items-center justify-between rounded-lg p-4 transition-colors ${isCurrent ? 'bg-indigo-800/60 ring-2 ring-indigo-400' : 'bg-gray-700/50 hover:bg-gray-700'}`}>
+                    <div className="flex items-center space-x-4">
+                      <span className="text-2xl font-bold text-gray-400 w-8">{index + 1}</span>
+                      <img src={user.avatar} alt={user.username} className="w-12 h-12 rounded-full" />
+                      <div>
+                        <h3 className={`font-semibold ${isCurrent ? 'text-indigo-200' : 'text-gray-100'}`}>{user.username}{isCurrent ? ' (You)' : ''}</h3>
+                        <div className="flex items-center space-x-4 text-sm text-gray-400">
+                          <span className="flex items-center">
+                            <Star className="w-4 h-4 mr-1 text-purple-400" />
+                            N/A achievements
+                          </span>
+                          <span>🔥 N/A day streak</span>
+                        </div>
                       </div>
                     </div>
+                    <div className="text-right">
+                      <div className="text-xl font-bold text-purple-400">{user.aurapoints}</div>
+                      <div className="text-sm text-gray-400">points</div>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-xl font-bold text-purple-400">{user.aurapoints}</div>
-                    <div className="text-sm text-gray-400">points</div>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
@@ -114,4 +136,4 @@ function App() {
   );
 }
 
-export default App;
+export default Leaderboard;

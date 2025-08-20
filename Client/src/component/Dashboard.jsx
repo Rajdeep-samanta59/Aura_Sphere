@@ -5,8 +5,7 @@ import {
 } from 'lucide-react';
 
 import axios from 'axios';
-
-import { jwtDecode } from "jwt-decode";
+import { decodeJwt } from '../utils/decodeJwt';
 import Navbar from './Navbar.jsx';
 
 const assignments = [
@@ -15,11 +14,7 @@ const assignments = [
   { id: 3, title: "Network Security", due: "Next week", status: "completed", points: 200 }
 ];
 
-const leaderboard = [
-  { rank: 1, name: "Alex Wong", points: 3200, trend: "up" },
-  { rank: 2, name: "Maria Garcia", points: 3150, trend: "down" },
-  { rank: 3, name: "James Chen", points: 3000, trend: "up" }
-];
+// Leaderboard will be fetched live from the server
 
 const GoalForm = ({ onSubmit }) => {
   const [goalId, setGoalId] = useState("");
@@ -38,14 +33,19 @@ const GoalForm = ({ onSubmit }) => {
       }
     }
     const token = localStorage.getItem("token");
-    const data = jwtDecode(token);
-    console.log("DATA: ", data);
+    const data = decodeJwt(token);
     const id = data.id;
-    const res = await axios.post(`https://aura-sphere.vercel.app/api/user/${id}/goals`, goalData);
-    console.log(res, " Response");
-    console.log("OHDGIDSUG:", goalData);
-    
-    onSubmit(goalData);
+    try {
+      const API_BASE = import.meta.env.VITE_API_URL || "";
+      const res = await axios.post(`${API_BASE}/api/goals/user/${id}/goals`, goalData, {
+        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true,
+      });
+      console.log('Goal submit response:', res.data);
+      onSubmit(goalData);
+    } catch (err) {
+      console.error('Error submitting goal:', err?.response || err.message || err);
+    }
     // Reset form
     setGoalId("");
     setGoal("");
@@ -90,6 +90,22 @@ const GoalForm = ({ onSubmit }) => {
 };
 
 function Dashboard() {
+  const [leaderboardLive, setLeaderboardLive] = useState([]);
+
+  useEffect(() => {
+    const loadLeaderboard = async () => {
+      try {
+        const API_BASE = import.meta.env.VITE_API_URL || "";
+        const res = await axios.get(`${API_BASE}/api/leaderboard`);
+        const users = res.data || [];
+        users.sort((a, b) => (b.aurapoints || 0) - (a.aurapoints || 0));
+        setLeaderboardLive(users.slice(0, 10));
+      } catch (err) {
+        console.error('Failed to load leaderboard', err);
+      }
+    };
+    loadLeaderboard();
+  }, []);
   const handleGoalSubmit = (goalData) => {
     console.log("Goal Data Submitted:", goalData);
     // Here you would typically send the data to your API
@@ -100,12 +116,13 @@ function Dashboard() {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const token = localStorage.getItem("token");
-        if (!token) throw new Error("No token found");
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("No token found");
 
-        const { id } = jwtDecode(token);
+      const { id } = decodeJwt(token);
         // const res = await axios.get(`http://localhost:8000/userinfo/${id}`, {
-        const res = await axios.get(`https://aura-sphere.vercel.app/userinfo/${id}`, {
+  const API_BASE = import.meta.env.VITE_API_URL || "";
+  const res = await axios.get(`${API_BASE}/api/userinfo/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -187,12 +204,12 @@ function Dashboard() {
           <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
             <h2 className="text-xl font-bold mb-4">Leaderboard</h2>
             <div className="space-y-4">
-              {leaderboard.map((player) => (
-                <div key={player.rank} className="flex items-center justify-between p-2 bg-gray-700 rounded-md">
-                  <span>{player.rank}. {player.name}</span>
-                  <span className="font-bold">{player.points} pts</span>
-                  <span className={`text-${player.trend === "up" ? "green" : "red"}-500`}>
-                    {player.trend === "up" ? <ChevronUp /> : <ChevronDown />}
+              {leaderboardLive.map((player, idx) => (
+                <div key={player._id || player.id || idx} className="flex items-center justify-between p-2 bg-gray-700 rounded-md">
+                  <span>{idx + 1}. {player.username || player.name || player.username}</span>
+                  <span className="font-bold">{player.aurapoints || 0} pts</span>
+                  <span className={`text-${(player.aurapoints||0) >= (leaderboardLive[idx+1]?.aurapoints||0) ? 'green' : 'red'}-500`}>
+                    {(player.aurapoints||0) >= (leaderboardLive[idx+1]?.aurapoints||0) ? <ChevronUp /> : <ChevronDown />}
                   </span>
                 </div>
               ))}
